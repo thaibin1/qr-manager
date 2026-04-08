@@ -34,6 +34,22 @@
       "note": "CÔNG TY NGỌC TÚ EXIM",
       "createdAt": "2026-04-08T10:20:07.913Z",
       "updatedAt": "2026-04-08T10:20:13.639Z"
+    },
+    {
+      "id": "845b4c16-37d2-4119-9aec-efd52d4dd90b",
+      "type": "bank",
+      "bankCode": "TCB",
+      "bankBin": "970407",
+      "bankName": "Techcombank",
+      "bankLogo": "https://cdn.vietqr.io/img/TCB.png",
+      "accountNo": "2301012345",
+      "accountName": "VŨ VĂN THÁI",
+      "defaultAmount": "",
+      "defaultNote": "",
+      "qrUrl": "https://img.vietqr.io/image/970407-2301012345-compact2.png?accountName=V%C5%A8%20V%C4%82N%20TH%C3%81I",
+      "qrImagePath": "",
+      "label": "TK chính",
+      "createdAt": "2026-04-08T10:43:35.955Z"
     }
   ]
 }

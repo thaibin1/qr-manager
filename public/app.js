@@ -38,7 +38,8 @@ async function loadAccounts() {
         const res = await fetch('/api/accounts');
         const data = await res.json();
         if (data.success) {
-            accounts = data.data;
+            // Normalize _id to id for compatibility
+            accounts = data.data.map(a => ({ ...a, id: a.id || a._id }));
             renderAccounts();
             updateStats();
         }
@@ -57,6 +58,7 @@ async function addAccount(payload) {
         });
         const data = await res.json();
         if (data.success) {
+            data.data.id = data.data.id || data.data._id;
             accounts.push(data.data);
             renderAccounts();
             updateStats();
@@ -72,14 +74,16 @@ async function addAccount(payload) {
     }
 }
 
-async function uploadQR(formData) {
+async function uploadQR(payload) {
     try {
         const res = await fetch('/api/upload-qr', {
             method: 'POST',
-            body: formData
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
         });
         const data = await res.json();
         if (data.success) {
+            data.data.id = data.data.id || data.data._id;
             accounts.push(data.data);
             renderAccounts();
             updateStats();
@@ -104,6 +108,7 @@ async function updateAccount(id, payload) {
         });
         const data = await res.json();
         if (data.success) {
+            data.data.id = data.data.id || data.data._id;
             const index = accounts.findIndex(a => a.id === id);
             if (index !== -1) accounts[index] = data.data;
             renderAccounts();
@@ -423,12 +428,21 @@ async function handleUploadQR(e) {
     submitBtn.disabled = true;
     submitBtn.textContent = 'Đang upload...';
 
-    const formData = new FormData();
-    formData.append('qrImage', fileInput.files[0]);
-    formData.append('label', document.getElementById('upload-label').value.trim());
-    formData.append('note', document.getElementById('upload-note').value.trim());
+    // Convert file to base64 for Cloudinary
+    const file = fileInput.files[0];
+    const base64 = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.readAsDataURL(file);
+    });
 
-    const success = await uploadQR(formData);
+    const payload = {
+        image: base64,
+        label: document.getElementById('upload-label').value.trim(),
+        note: document.getElementById('upload-note').value.trim()
+    };
+
+    const success = await uploadQR(payload);
     if (success) {
         closeModal('modal-upload');
     }

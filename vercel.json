@@ -1,0 +1,21 @@
+{
+  "builds": [
+    {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "public/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    { "src": "/api/accounts/(.+)", "dest": "/api/accounts/[id].js?id=$1" },
+    { "src": "/api/accounts", "dest": "/api/accounts.js" },
+    { "src": "/api/upload-qr", "dest": "/api/upload-qr.js" },
+    { "src": "/api/banks", "dest": "/api/banks.js" },
+    { "src": "/style.css", "dest": "/public/style.css" },
+    { "src": "/app.js", "dest": "/public/app.js" },
+    { "src": "/(.*)", "dest": "/public/index.html" }
+  ]
+}
