@@ -67,14 +67,33 @@ body {
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
 
+/* ---------- Top Accent Line ---------- */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #7c3aed, #06b6d4, #10b981, #06b6d4, #7c3aed);
+    background-size: 200% 100%;
+    animation: shimmer 4s linear infinite;
+    z-index: 200;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
 /* ---------- Header ---------- */
 .header {
     position: sticky;
-    top: 0;
+    top: 3px;
     z-index: 100;
-    background: rgba(10, 10, 26, 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: rgba(10, 10, 26, 0.9);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     border-bottom: 1px solid var(--border-subtle);
     padding: 0 24px;
 }
@@ -85,19 +104,25 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 64px;
+    height: 72px;
 }
 
 .logo {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
 }
 
 .logo-icon {
     display: flex;
     align-items: center;
     animation: float 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 12px rgba(124, 58, 237, 0.4));
+    transition: filter 0.3s ease;
+}
+
+.logo:hover .logo-icon {
+    filter: drop-shadow(0 0 20px rgba(124, 58, 237, 0.6));
 }
 
 @keyframes float {
@@ -105,14 +130,36 @@ body {
     50% { transform: translateY(-3px); }
 }
 
+.logo-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
 .logo h1 {
-    font-size: 1.35rem;
-    font-weight: 700;
-    background: var(--gradient-primary);
+    font-size: 1.6rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #a78bfa, #7c3aed, #06b6d4, #22d3ee);
+    background-size: 200% 200%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     letter-spacing: -0.5px;
+    animation: gradientFlow 4s ease infinite;
+    line-height: 1.2;
+}
+
+@keyframes gradientFlow {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.logo-tagline {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
 }
 
 .header-actions {
