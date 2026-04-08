@@ -1,0 +1,39 @@
+{
+  "accounts": [
+    {
+      "id": "c45e4bd7-bbe3-4a62-8576-da52d23aaec7",
+      "type": "custom",
+      "bankCode": "",
+      "bankBin": "",
+      "bankName": "",
+      "bankLogo": "",
+      "accountNo": "",
+      "accountName": "",
+      "defaultAmount": "",
+      "defaultNote": "",
+      "qrUrl": "",
+      "qrImagePath": "/uploads/qr-1775643527962-i4cn84.jpg",
+      "label": "QR ZALO OA NGỌC TÚ",
+      "note": "",
+      "createdAt": "2026-04-08T10:18:47.964Z"
+    },
+    {
+      "id": "b33a5349-73f1-40c3-b9f3-3d60e5fde8b4",
+      "type": "custom",
+      "bankCode": "",
+      "bankBin": "",
+      "bankName": "",
+      "bankLogo": "",
+      "accountNo": "",
+      "accountName": "",
+      "defaultAmount": "",
+      "defaultNote": "",
+      "qrUrl": "",
+      "qrImagePath": "/uploads/qr-1775643607910-9ecyp0.jpg",
+      "label": "CÔNG TY NGỌC TÚ EXIM",
+      "note": "CÔNG TY NGỌC TÚ EXIM",
+      "createdAt": "2026-04-08T10:20:07.913Z",
+      "updatedAt": "2026-04-08T10:20:13.639Z"
+    }
+  ]
+}

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Quản lý QR code và tài khoản ngân hàng cá nhân - Tạo QR VietQR, upload và quản lý dễ dàng">
+    <title>QR Manager - Quản Lý QR & Tài Khoản</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <!-- ============ HEADER ============ -->
+    <header class="header" id="main-header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                        <rect x="2" y="2" width="12" height="12" rx="2" fill="url(#g1)" />
+                        <rect x="18" y="2" width="12" height="12" rx="2" fill="url(#g1)" />
+                        <rect x="2" y="18" width="12" height="12" rx="2" fill="url(#g1)" />
+                        <rect x="20" y="20" width="8" height="8" rx="1.5" fill="url(#g2)" />
+                        <defs>
+                            <linearGradient id="g1" x1="0" y1="0" x2="32" y2="32">
+                                <stop stop-color="#7c3aed"/>
+                                <stop offset="1" stop-color="#06b6d4"/>
+                            </linearGradient>
+                            <linearGradient id="g2" x1="20" y1="20" x2="28" y2="28">
+                                <stop stop-color="#06b6d4"/>
+                                <stop offset="1" stop-color="#10b981"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <h1>QR Manager</h1>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-primary" id="btn-add-account" onclick="openModal('add')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Thêm TK
+                </button>
+                <button class="btn btn-secondary" id="btn-upload-qr" onclick="openModal('upload')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    Upload QR
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============ MAIN CONTENT ============ -->
+    <main class="main-content">
+        <!-- Stats Cards -->
+        <section class="stats-section" id="stats-section">
+            <div class="stat-card" id="stat-total">
+                <div class="stat-icon stat-icon-total">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-value" id="stat-total-value">0</span>
+                    <span class="stat-label">Tổng QR</span>
+                </div>
+            </div>
+            <div class="stat-card" id="stat-bank">
+                <div class="stat-icon stat-icon-bank">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-value" id="stat-bank-value">0</span>
+                    <span class="stat-label">Ngân hàng</span>
+                </div>
+            </div>
+            <div class="stat-card" id="stat-custom">
+                <div class="stat-icon stat-icon-custom">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-value" id="stat-custom-value">0</span>
+                    <span class="stat-label">QR Upload</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Search & Filter -->
+        <section class="filter-section" id="filter-section">
+            <div class="search-wrapper">
+                <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input type="text" id="search-input" class="search-input" placeholder="Tìm kiếm theo tên, ngân hàng, số TK..." oninput="filterAccounts()">
+            </div>
+            <div class="filter-tabs" id="filter-tabs">
+                <button class="filter-tab active" data-filter="all" onclick="setFilter('all')">Tất cả</button>
+                <button class="filter-tab" data-filter="bank" onclick="setFilter('bank')">Ngân hàng</button>
+                <button class="filter-tab" data-filter="custom" onclick="setFilter('custom')">Upload</button>
+            </div>
+        </section>
+
+        <!-- Account Cards Grid -->
+        <section class="cards-grid" id="cards-grid">
+            <!-- Cards will be rendered by JS -->
+        </section>
+
+        <!-- Empty State -->
+        <section class="empty-state" id="empty-state" style="display: none;">
+            <div class="empty-icon">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.3">
+                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+                </svg>
+            </div>
+            <h3>Chưa có QR nào</h3>
+            <p>Bắt đầu bằng cách thêm tài khoản ngân hàng hoặc upload ảnh QR</p>
+            <div class="empty-actions">
+                <button class="btn btn-primary" onclick="openModal('add')">+ Thêm tài khoản</button>
+                <button class="btn btn-secondary" onclick="openModal('upload')">Upload QR</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- ============ MODAL: ADD ACCOUNT ============ -->
+    <div class="modal-overlay" id="modal-add" onclick="closeModalOnOverlay(event, 'modal-add')">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2 id="modal-add-title">Thêm Tài Khoản Ngân Hàng</h2>
+                <button class="modal-close" onclick="closeModal('modal-add')">&times;</button>
+            </div>
+            <form id="form-add-account" onsubmit="handleAddAccount(event)">
+                <div class="form-group">
+                    <label for="bank-select">Ngân hàng <span class="required">*</span></label>
+                    <div class="bank-select-wrapper">
+                        <img id="bank-logo-preview" class="bank-logo-preview" src="" alt="" style="display:none;">
+                        <select id="bank-select" required onchange="onBankChange()">
+                            <option value="">-- Chọn ngân hàng --</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="account-no">Số tài khoản <span class="required">*</span></label>
+                        <input type="text" id="account-no" placeholder="VD: 0123456789" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="account-name">Tên chủ TK <span class="required">*</span></label>
+                        <input type="text" id="account-name" placeholder="VD: NGUYEN VAN A" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="default-amount">Số tiền mặc định</label>
+                        <input type="number" id="default-amount" placeholder="Tuỳ chọn">
+                    </div>
+                    <div class="form-group">
+                        <label for="default-note">Nội dung CK</label>
+                        <input type="text" id="default-note" placeholder="Tuỳ chọn">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="label">Nhãn / Ghi chú</label>
+                    <input type="text" id="label" placeholder="VD: TK chính, TK phụ...">
+                </div>
+
+                <!-- QR Preview -->
+                <div class="qr-preview" id="qr-preview" style="display:none;">
+                    <h4>Xem trước QR</h4>
+                    <img id="qr-preview-img" src="" alt="QR Preview" loading="lazy">
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-ghost" onclick="closeModal('modal-add')">Huỷ</button>
+                    <button type="button" class="btn btn-outline" onclick="previewQR()">Xem trước</button>
+                    <button type="submit" class="btn btn-primary" id="btn-submit-add">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============ MODAL: UPLOAD QR ============ -->
+    <div class="modal-overlay" id="modal-upload" onclick="closeModalOnOverlay(event, 'modal-upload')">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Upload Ảnh QR</h2>
+                <button class="modal-close" onclick="closeModal('modal-upload')">&times;</button>
+            </div>
+            <form id="form-upload-qr" onsubmit="handleUploadQR(event)">
+                <div class="form-group">
+                    <label>Ảnh QR <span class="required">*</span></label>
+                    <div class="upload-zone" id="upload-zone" onclick="document.getElementById('qr-file-input').click()"
+                         ondragover="event.preventDefault(); this.classList.add('dragover')"
+                         ondragleave="this.classList.remove('dragover')"
+                         ondrop="handleDrop(event)">
+                        <input type="file" id="qr-file-input" accept="image/*" hidden onchange="handleFileSelect(event)">
+                        <div class="upload-placeholder" id="upload-placeholder">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            <p>Kéo thả ảnh vào đây<br>hoặc <strong>nhấn để chọn file</strong></p>
+                            <span class="upload-hint">JPG, PNG, GIF, WebP - Tối đa 5MB</span>
+                        </div>
+                        <img id="upload-preview-img" class="upload-preview-img" src="" alt="" style="display:none;">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="upload-label">Nhãn <span class="required">*</span></label>
+                    <input type="text" id="upload-label" placeholder="VD: QR Momo, ZaloPay..." required>
+                </div>
+                <div class="form-group">
+                    <label for="upload-note">Ghi chú</label>
+                    <textarea id="upload-note" placeholder="Ghi chú thêm (tuỳ chọn)" rows="2"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-ghost" onclick="closeModal('modal-upload')">Huỷ</button>
+                    <button type="submit" class="btn btn-primary" id="btn-submit-upload">Upload</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============ MODAL: EDIT ACCOUNT ============ -->
+    <div class="modal-overlay" id="modal-edit" onclick="closeModalOnOverlay(event, 'modal-edit')">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Chỉnh Sửa Tài Khoản</h2>
+                <button class="modal-close" onclick="closeModal('modal-edit')">&times;</button>
+            </div>
+            <form id="form-edit-account" onsubmit="handleEditAccount(event)">
+                <input type="hidden" id="edit-id">
+                <input type="hidden" id="edit-type">
+                
+                <!-- Bank fields (shown for bank type) -->
+                <div id="edit-bank-fields">
+                    <div class="form-group">
+                        <label for="edit-bank-select">Ngân hàng</label>
+                        <select id="edit-bank-select" onchange="onEditBankChange()">
+                            <option value="">-- Chọn ngân hàng --</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-account-no">Số tài khoản</label>
+                            <input type="text" id="edit-account-no">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-account-name">Tên chủ TK</label>
+                            <input type="text" id="edit-account-name">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-default-amount">Số tiền mặc định</label>
+                            <input type="number" id="edit-default-amount">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-default-note">Nội dung CK</label>
+                            <input type="text" id="edit-default-note">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-label">Nhãn / Ghi chú</label>
+                    <input type="text" id="edit-label">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-ghost" onclick="closeModal('modal-edit')">Huỷ</button>
+                    <button type="submit" class="btn btn-primary">Cập nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============ MODAL: QR FULL VIEW ============ -->
+    <div class="modal-overlay" id="modal-qr-view" onclick="closeModalOnOverlay(event, 'modal-qr-view')">
+        <div class="modal modal-qr-fullview" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2 id="qr-view-title">Mã QR</h2>
+                <button class="modal-close" onclick="closeModal('modal-qr-view')">&times;</button>
+            </div>
+            <div class="qr-fullview-content">
+                <img id="qr-view-img" src="" alt="QR Code" loading="lazy">
+                <div class="qr-view-info" id="qr-view-info"></div>
+                <div class="qr-view-actions">
+                    <button class="btn btn-primary" id="btn-download-qr" onclick="downloadQR()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Tải về
+                    </button>
+                    <button class="btn btn-secondary" onclick="copyQRLink()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
+                        Copy link
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ MODAL: CONFIRM DELETE ============ -->
+    <div class="modal-overlay" id="modal-delete" onclick="closeModalOnOverlay(event, 'modal-delete')">
+        <div class="modal modal-small" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Xác nhận xoá</h2>
+                <button class="modal-close" onclick="closeModal('modal-delete')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc muốn xoá tài khoản <strong id="delete-account-name"></strong>?</p>
+                <p class="text-muted">Hành động này không thể hoàn tác.</p>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-ghost" onclick="closeModal('modal-delete')">Huỷ</button>
+                <button class="btn btn-danger" id="btn-confirm-delete" onclick="confirmDelete()">Xoá</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="/app.js"></script>
+</body>
+</html>
