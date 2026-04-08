@@ -16,6 +16,10 @@
     { "src": "/api/banks", "dest": "/api/banks.js" },
     { "src": "/style.css", "dest": "/public/style.css" },
     { "src": "/app.js", "dest": "/public/app.js" },
+    { "src": "/manifest.json", "dest": "/public/manifest.json" },
+    { "src": "/sw.js", "dest": "/public/sw.js" },
+    { "src": "/icon-192.png", "dest": "/public/icon-192.png" },
+    { "src": "/icon-512.png", "dest": "/public/icon-512.png" },
     { "src": "/(.*)", "dest": "/public/index.html" }
   ]
 }
