@@ -210,14 +210,22 @@ function renderBankCard(account, index) {
                      onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22160%22 height=%22160%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%239ca3af%22 stroke-width=%221%22%3E%3Crect x=%223%22 y=%223%22 width=%227%22 height=%227%22/%3E%3Crect x=%2214%22 y=%223%22 width=%227%22 height=%227%22/%3E%3Crect x=%223%22 y=%2214%22 width=%227%22 height=%227%22/%3E%3Crect x=%2214%22 y=%2214%22 width=%227%22 height=%227%22/%3E%3C/svg%3E'">
             </div>
             <div class="card-info">
+                ${account.accountName ? `
+                    <div class="card-holder-name">
+                        <svg class="card-holder-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        ${account.accountName}
+                    </div>
+                ` : ''}
                 ${logoSrc ? `
                     <div class="card-bank-row">
                         <img class="card-bank-logo" src="${logoSrc}" alt="${account.bankName}" onerror="this.style.display='none'">
                         <span class="card-bank-name">${account.bankName || account.bankCode}</span>
                     </div>
                 ` : ''}
-                <div class="card-account-no">${formatAccountNo(account.accountNo)}</div>
-                <div class="card-account-name">${account.accountName || ''}</div>
+                <div class="card-account-no">
+                    <span class="card-stk-label">STK:</span>
+                    ${formatAccountNo(account.accountNo)}
+                </div>
                 ${account.label ? `<span class="card-label">${account.label}</span>` : ''}
             </div>
             <div class="card-actions">
