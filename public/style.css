@@ -1148,6 +1148,8 @@ form {
 }
 
 /* ---------- Responsive ---------- */
+
+/* Tablet */
 @media (max-width: 768px) {
     .header-content {
         height: auto;
@@ -1168,21 +1170,36 @@ form {
     }
 
     .main-content {
-        padding: 16px;
+        padding: 12px 10px;
     }
 
     .stats-section {
-        grid-template-columns: 1fr;
-        gap: 10px;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-bottom: 16px;
     }
 
     .stat-card {
-        padding: 14px 18px;
+        padding: 10px 12px;
+    }
+
+    .stat-icon {
+        width: 36px;
+        height: 36px;
+    }
+
+    .stat-value {
+        font-size: 1.3rem;
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
     }
 
     .filter-section {
         flex-direction: column;
-        gap: 10px;
+        gap: 8px;
+        margin-bottom: 16px;
     }
 
     .search-wrapper {
@@ -1193,11 +1210,6 @@ form {
     .filter-tabs {
         width: 100%;
         justify-content: center;
-    }
-
-    .cards-grid {
-        grid-template-columns: 1fr;
-        gap: 14px;
     }
 
     .form-row {
@@ -1219,13 +1231,313 @@ form {
     }
 }
 
-@media (max-width: 480px) {
+/* Mobile – Compact 4-column grid */
+@media (max-width: 640px) {
+    body::before {
+        height: 2px;
+    }
+
+    .header {
+        top: 2px;
+        padding: 0 10px;
+    }
+
+    .header-content {
+        height: auto;
+        padding: 8px 0;
+        gap: 6px;
+    }
+
+    .logo-icon svg {
+        width: 28px;
+        height: 28px;
+    }
+
+    .logo h1 {
+        font-size: 1.1rem;
+    }
+
+    .logo-tagline {
+        font-size: 0.55rem;
+        letter-spacing: 1.5px;
+    }
+
+    .header-actions .btn {
+        padding: 7px 10px;
+        font-size: 0.75rem;
+        gap: 4px;
+    }
+
+    .header-actions .btn svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .main-content {
+        padding: 10px 8px;
+    }
+
+    /* Stats: compact horizontal row */
+    .stats-section {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+
+    .stat-card {
+        padding: 8px 10px;
+        gap: 8px;
+        border-radius: 12px;
+    }
+
+    .stat-card::before { display: none; }
+
+    .stat-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+    }
+
+    .stat-icon svg {
+        width: 16px;
+        height: 16px;
+    }
+
     .stat-value {
-        font-size: 1.4rem;
+        font-size: 1.1rem;
+        letter-spacing: 0;
+    }
+
+    .stat-label {
+        font-size: 0.6rem;
+    }
+
+    /* Filter: compact */
+    .filter-section {
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+
+    .search-input {
+        padding: 8px 12px 8px 36px;
+        font-size: 0.8rem;
+    }
+
+    .search-icon {
+        left: 10px;
+    }
+
+    .search-icon svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .filter-tabs {
+        padding: 3px;
+    }
+
+    .filter-tab {
+        padding: 5px 10px;
+        font-size: 0.72rem;
+    }
+
+    /* ===== CARDS: 4-COLUMN COMPACT GRID ===== */
+    .cards-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        perspective: none;
+    }
+
+    .account-card {
+        border-radius: 14px;
+        box-shadow:
+            0 2px 8px rgba(0,0,0,0.2),
+            0 6px 20px rgba(0,0,0,0.15),
+            inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+
+    .account-card::before {
+        height: 1px;
+    }
+
+    .account-card::after {
+        display: none;
+    }
+
+    .account-card:hover {
+        transform: translateY(-2px) scale(1.02);
+    }
+
+    /* Badge: tiny */
+    .card-badge {
+        top: 4px;
+        right: 4px;
+        padding: 2px 5px;
+        font-size: 0.4rem;
+        letter-spacing: 0.5px;
+    }
+
+    /* QR: very compact */
+    .card-qr-section {
+        padding: 8px;
+        min-height: auto;
     }
 
     .card-qr-img {
-        width: 130px;
-        height: 130px;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1/1;
+        padding: 3px;
+        border-radius: 8px;
+    }
+
+    /* Info: minimal — only name visible */
+    .card-info {
+        padding: 6px 8px 4px;
+    }
+
+    .card-info::before {
+        left: 6px;
+        right: 6px;
+    }
+
+    .card-holder-name {
+        font-size: 0.5rem;
+        margin-bottom: 2px;
+        gap: 3px;
+        letter-spacing: 0;
+    }
+
+    .card-holder-icon {
+        width: 10px;
+        height: 10px;
+    }
+
+    .card-bank-row {
+        padding: 3px 5px;
+        margin-bottom: 3px;
+        gap: 4px;
+        border-radius: 6px;
+    }
+
+    .card-bank-logo {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+    }
+
+    .card-bank-name {
+        font-size: 0.45rem;
+    }
+
+    .card-account-no {
+        font-size: 0.48rem;
+        letter-spacing: 0.5px;
+        margin-bottom: 2px;
+    }
+
+    .card-stk-label {
+        font-size: 0.38rem;
+        margin-right: 2px;
+    }
+
+    .card-account-name {
+        display: none;
+    }
+
+    .card-label {
+        padding: 1px 5px;
+        font-size: 0.4rem;
+        border-radius: 50px;
+    }
+
+    .card-custom-label {
+        font-size: 0.55rem;
+        margin-bottom: 2px;
+    }
+
+    .card-custom-note {
+        display: none;
+    }
+
+    /* Actions: tiny row */
+    .card-actions {
+        padding: 4px 6px 6px;
+        gap: 3px;
+    }
+
+    .card-actions .btn-icon {
+        width: auto;
+        height: 24px;
+        border-radius: 6px;
+    }
+
+    .card-actions .btn-icon svg {
+        width: 12px;
+        height: 12px;
+    }
+
+    /* Toast smaller */
+    .toast-container {
+        bottom: 10px;
+        right: 10px;
+        left: 10px;
+    }
+
+    .toast {
+        min-width: unset;
+        font-size: 0.78rem;
+        padding: 10px 14px;
+    }
+
+    /* Modal fullscreen on mobile */
+    .modal {
+        max-height: 95vh;
+        margin: 8px;
+        border-radius: 16px;
+    }
+
+    .modal-header {
+        padding: 14px 16px 0;
+    }
+
+    .modal-header h2 {
+        font-size: 1rem;
+    }
+
+    .modal-body {
+        padding: 12px 16px;
+    }
+
+    form {
+        padding: 12px 16px 16px;
+    }
+
+    .empty-state {
+        padding: 40px 16px;
+    }
+
+    .empty-state h3 {
+        font-size: 1.1rem;
+    }
+
+    .empty-state p {
+        font-size: 0.85rem;
+    }
+}
+
+/* Very small phones */
+@media (max-width: 380px) {
+    .cards-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+    }
+
+    .card-holder-name {
+        font-size: 0.48rem;
+    }
+
+    .card-badge {
+        display: none;
     }
 }
