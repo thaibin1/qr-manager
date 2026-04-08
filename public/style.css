@@ -1320,7 +1320,7 @@ form {
 
     .search-input {
         padding: 8px 12px 8px 36px;
-        font-size: 0.8rem;
+        font-size: 16px; /* iOS requires 16px minimum to prevent auto-zoom */
     }
 
     .search-icon {
