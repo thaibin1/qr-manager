@@ -234,6 +234,6 @@ app.get('*', (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
-    console.log(`🚀 QR Manager đang chạy tại http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 QR Manager đang chạy tại http://0.0.0.0:${PORT}`);
 });
