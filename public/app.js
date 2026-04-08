@@ -2,6 +2,15 @@
 //  QR MANAGER - Frontend Application
 // ============================================
 
+// Vietnamese diacritics removal for accent-insensitive search
+function removeDiacritics(str) {
+    return str
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd')
+        .replace(/Đ/g, 'D');
+}
+
 // State
 let accounts = [];
 let banks = [];
@@ -146,7 +155,7 @@ async function deleteAccount(id) {
 function renderAccounts() {
     const grid = document.getElementById('cards-grid');
     const emptyState = document.getElementById('empty-state');
-    const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+    const searchTerm = removeDiacritics(document.getElementById('search-input').value.toLowerCase().trim());
 
     let filtered = accounts;
 
@@ -157,13 +166,13 @@ function renderAccounts() {
         filtered = filtered.filter(a => a.type === 'custom');
     }
 
-    // Search
+    // Search (accent-insensitive Vietnamese)
     if (searchTerm) {
         filtered = filtered.filter(a => {
             const searchFields = [
                 a.bankName, a.accountNo, a.accountName,
                 a.label, a.note, a.bankCode
-            ].filter(Boolean).map(s => s.toLowerCase());
+            ].filter(Boolean).map(s => removeDiacritics(s.toLowerCase()));
             return searchFields.some(f => f.includes(searchTerm));
         });
     }
