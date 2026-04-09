@@ -849,13 +849,20 @@ async function deleteFolder(folderId) {
 
 async function uploadImageToFolder(folderId, file, caption) {
     try {
-        const formData = new FormData();
-        formData.append('image', file);
-        formData.append('caption', caption || '');
+        // Convert file to base64 for Cloudinary (Vercel serverless)
+        const base64 = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.readAsDataURL(file);
+        });
 
         const res = await fetch(`/api/folders/${folderId}/images`, {
             method: 'POST',
-            body: formData
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                image: base64,
+                caption: caption || ''
+            })
         });
         const data = await res.json();
         if (data.success) {

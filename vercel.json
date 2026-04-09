@@ -10,6 +10,10 @@
     }
   ],
   "routes": [
+    { "src": "/api/folders/([^/]+)/images/([^/]+)", "dest": "/api/folders/[folderId]/images/[imageId].js?folderId=$1&imageId=$2" },
+    { "src": "/api/folders/([^/]+)/images", "dest": "/api/folders/[id]/images.js?id=$1" },
+    { "src": "/api/folders/([^/]+)", "dest": "/api/folders/[id].js?id=$1" },
+    { "src": "/api/folders", "dest": "/api/folders.js" },
     { "src": "/api/accounts/(.+)", "dest": "/api/accounts/[id].js?id=$1" },
     { "src": "/api/accounts", "dest": "/api/accounts.js" },
     { "src": "/api/upload-qr", "dest": "/api/upload-qr.js" },
