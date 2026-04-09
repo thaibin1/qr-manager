@@ -268,6 +268,9 @@ function renderBankCard(account, index) {
                 <button class="btn-icon view" onclick="viewQR('${account.id}')" title="Xem QR lớn">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 </button>
+                <button class="btn-icon move" onclick="openMoveFolderModal('${account.id}')" title="Chuyển vào thư mục">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2v11z"/><polyline points="12 11 12 17 9 14 15 14" opacity="0.5" /></svg>
+                </button>
                 <button class="btn-icon copy" onclick="copyAccountNo('${account.accountNo}')" title="Copy STK">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                 </button>
@@ -299,6 +302,9 @@ function renderCustomCard(account, index) {
             <div class="card-actions">
                 <button class="btn-icon view" onclick="viewQR('${account.id}')" title="Xem QR lớn">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+                <button class="btn-icon move" onclick="openMoveFolderModal('${account.id}')" title="Chuyển vào thư mục">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2v11z"/><polyline points="12 11 12 17 9 14 15 14" opacity="0.5" /></svg>
                 </button>
                 <button class="btn-icon copy" onclick="copyQRImageLink('${account.id}')" title="Copy link ảnh">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -1241,4 +1247,66 @@ function formatFileSize(bytes) {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+// ============ MOVE TO FOLDER ============
+let accountToMove = null;
+
+function openMoveFolderModal(accountId) {
+    accountToMove = accounts.find(a => a.id === accountId);
+    if (!accountToMove) return;
+
+    document.getElementById('move-account-name').textContent = `Đang chuyển: ${accountToMove.label || accountToMove.accountName || accountToMove.bankName || 'QR Không Tên'}`;
+    
+    const select = document.getElementById('move-folder-select');
+    if (folders.length === 0) {
+        select.innerHTML = `<option value="" disabled selected>Bắt buộc tạo thư mục trước</option>`;
+    } else {
+        select.innerHTML = folders.map(f => `<option value="${f.id}">📁 ${f.name}</option>`).join('');
+    }
+
+    document.getElementById('modal-move-folder').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+async function handleMoveToFolder(e) {
+    e.preventDefault();
+    if (!accountToMove) return;
+
+    const folderId = document.getElementById('move-folder-select').value;
+    if (!folderId) {
+        return showToast('Vui lòng chọn thư mục', 'error');
+    }
+
+    const btn = document.getElementById('btn-submit-move');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner"></span> Đang xử lý...';
+    btn.disabled = true;
+
+    try {
+        const res = await fetch('/api/folders/import', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                folderId: folderId,
+                accountId: accountToMove.id
+            })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            showToast('Chuyển ảnh thành công', 'success');
+            closeModal('modal-move-folder');
+            accountToMove = null;
+            // Refresh both states
+            await Promise.all([loadAccounts(), loadFolders()]);
+        } else {
+            showToast(data.message || 'Lỗi chuyển ảnh', 'error');
+        }
+    } catch (err) {
+        showToast('Lỗi kết nối server', 'error');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
 }

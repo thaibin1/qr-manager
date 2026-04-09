@@ -108,34 +108,11 @@
                 </svg>
                 <input type="text" id="search-input" class="search-input" placeholder="Tìm kiếm theo tên, ngân hàng, số TK..." oninput="filterAccounts()">
             </div>
-            <div class="filter-tabs" id="filter-tabs">
-                <button class="filter-tab active" data-filter="all" onclick="setFilter('all')">Tất cả</button>
-                <button class="filter-tab" data-filter="bank" onclick="setFilter('bank')">Ngân hàng</button>
-                <button class="filter-tab" data-filter="custom" onclick="setFilter('custom')">Upload</button>
             </div>
         </section>
 
-        <!-- Account Cards Grid -->
-        <section class="cards-grid" id="cards-grid">
-            <!-- Cards will be rendered by JS -->
-        </section>
-
-        <!-- Empty State -->
-        <section class="empty-state" id="empty-state" style="display: none;">
-            <div class="empty-icon">
-                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.3">
-                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
-                </svg>
-            </div>
-            <h3>Chưa có QR nào</h3>
-            <p>Bắt đầu bằng cách thêm tài khoản ngân hàng hoặc upload ảnh QR</p>
-            <div class="empty-actions">
-                <button class="btn btn-primary" onclick="openModal('add')">+ Thêm tài khoản</button>
-                <button class="btn btn-secondary" onclick="openModal('upload')">Upload QR</button>
-            </div>
-        </section>
-        <!-- ============ FOLDERS SECTION ============ -->
-        <section class="folders-wrapper" id="folders-wrapper">
+        <!-- ============ FOLDERS SECTION (MOVED UP) ============ -->
+        <section class="folders-wrapper" id="folders-wrapper" style="margin-top: 10px; padding-top: 10px; border-top: none;">
             <div class="folders-header">
                 <div class="folders-title">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -160,6 +137,38 @@
                 </svg>
                 <p>Chưa có thư mục nào</p>
                 <button class="btn btn-secondary btn-sm" onclick="openCreateFolderModal()">+ Tạo folder đầu tiên</button>
+            </div>
+        </section>
+
+        <!-- QR Filters -->
+        <section class="filter-section" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-subtle);">
+            <div class="folders-title" style="margin-bottom: 12px; font-size: 0.9em; color: var(--text-secondary);">
+                Tất cả QR & Tài khoản
+            </div>
+            <div class="filter-tabs" id="filter-tabs">
+                <button class="filter-tab active" data-filter="all" onclick="setFilter('all')">Tất cả</button>
+                <button class="filter-tab" data-filter="bank" onclick="setFilter('bank')">Ngân hàng</button>
+                <button class="filter-tab" data-filter="custom" onclick="setFilter('custom')">Upload</button>
+            </div>
+        </section>
+
+        <!-- Account Cards Grid -->
+        <section class="cards-grid" id="cards-grid">
+            <!-- Cards will be rendered by JS -->
+        </section>
+
+        <!-- Empty State -->
+        <section class="empty-state" id="empty-state" style="display: none;">
+            <div class="empty-icon">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.3">
+                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+                </svg>
+            </div>
+            <h3>Chưa có QR nào</h3>
+            <p>Bắt đầu bằng cách thêm tài khoản ngân hàng hoặc upload ảnh QR</p>
+            <div class="empty-actions">
+                <button class="btn btn-primary" onclick="openModal('add')">+ Thêm tài khoản</button>
+                <button class="btn btn-secondary" onclick="openModal('upload')">Upload QR</button>
             </div>
         </section>
     </main>
@@ -515,6 +524,43 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal: Move to Folder -->
+    <div class="modal-overlay" id="modal-move-folder" onclick="if(event.target === this) closeModal('modal-move-folder')">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal('modal-move-folder')">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+            <div class="modal-header">
+                <h2>Chuyển vào thư mục</h2>
+            </div>
+            <div class="modal-body">
+                <p id="move-account-name" style="margin-bottom: 20px; font-weight: 500;"></p>
+                <form id="form-move-folder" onsubmit="handleMoveToFolder(event)">
+                    <div class="form-group">
+                        <label>Chọn thư mục gốc</label>
+                        <select id="move-folder-select" required>
+                            <!-- Opts generated by JS -->
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-move-folder')">Huỷ</button>
+                        <button type="submit" class="btn btn-primary" id="btn-submit-move">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            Chuyển ảnh
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR App Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 
     <!-- Toast Notification -->
     <div id="toast-container" class="toast-container"></div>
