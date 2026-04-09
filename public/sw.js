@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qr-manager-v1';
+const CACHE_NAME = 'qr-manager-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -29,7 +29,7 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch: Network-first for API, Cache-first for static
+// Fetch: Network-first for API & HTML, Stale-while-revalidate for CSS/JS
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
@@ -38,7 +38,6 @@ self.addEventListener('fetch', event => {
     event.respondWith(
       fetch(event.request)
         .then(response => {
-          // Cache successful API responses
           if (response.ok) {
             const clone = response.clone();
             caches.open(CACHE_NAME).then(cache => {
@@ -48,36 +47,45 @@ self.addEventListener('fetch', event => {
           return response;
         })
         .catch(() => {
-          // Offline: serve cached API response
           return caches.match(event.request);
         })
     );
     return;
   }
 
-  // Static assets: cache first, then network
-  event.respondWith(
-    caches.match(event.request).then(cached => {
-      if (cached) {
-        // Update cache in background
-        fetch(event.request).then(response => {
+  // HTML pages: network first (ensures latest version)
+  if (event.request.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname === '/') {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
           if (response.ok) {
+            const clone = response.clone();
             caches.open(CACHE_NAME).then(cache => {
-              cache.put(event.request, response);
+              cache.put(event.request, clone);
             });
           }
-        }).catch(() => {});
-        return cached;
-      }
-      return fetch(event.request).then(response => {
+          return response;
+        })
+        .catch(() => {
+          return caches.match(event.request);
+        })
+    );
+    return;
+  }
+
+  // Static assets (CSS, JS, images): stale-while-revalidate
+  event.respondWith(
+    caches.match(event.request).then(cached => {
+      const fetchPromise = fetch(event.request).then(response => {
         if (response.ok) {
-          const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, clone);
+            cache.put(event.request, response.clone());
           });
         }
         return response;
-      });
+      }).catch(() => cached);
+
+      return cached || fetchPromise;
     })
   );
 });
