@@ -3,12 +3,38 @@
 // ============================================
 
 // Vietnamese diacritics removal for accent-insensitive search
+// Comprehensive mapping: handles all Vietnamese characters (ơ, ư, ă, â, ê, ô + 6 tones)
+const VN_DIACRITICS_MAP = {
+    'à':'a','á':'a','ả':'a','ã':'a','ạ':'a',
+    'ă':'a','ằ':'a','ắ':'a','ẳ':'a','ẵ':'a','ặ':'a',
+    'â':'a','ầ':'a','ấ':'a','ẩ':'a','ẫ':'a','ậ':'a',
+    'è':'e','é':'e','ẻ':'e','ẽ':'e','ẹ':'e',
+    'ê':'e','ề':'e','ế':'e','ể':'e','ễ':'e','ệ':'e',
+    'ì':'i','í':'i','ỉ':'i','ĩ':'i','ị':'i',
+    'ò':'o','ó':'o','ỏ':'o','õ':'o','ọ':'o',
+    'ô':'o','ồ':'o','ố':'o','ổ':'o','ỗ':'o','ộ':'o',
+    'ơ':'o','ờ':'o','ớ':'o','ở':'o','ỡ':'o','ợ':'o',
+    'ù':'u','ú':'u','ủ':'u','ũ':'u','ụ':'u',
+    'ư':'u','ừ':'u','ứ':'u','ử':'u','ữ':'u','ự':'u',
+    'ỳ':'y','ý':'y','ỷ':'y','ỹ':'y','ỵ':'y',
+    'đ':'d',
+    'À':'A','Á':'A','Ả':'A','Ã':'A','Ạ':'A',
+    'Ă':'A','Ằ':'A','Ắ':'A','Ẳ':'A','Ẵ':'A','Ặ':'A',
+    'Â':'A','Ầ':'A','Ấ':'A','Ẩ':'A','Ẫ':'A','Ậ':'A',
+    'È':'E','É':'E','Ẻ':'E','Ẽ':'E','Ẹ':'E',
+    'Ê':'E','Ề':'E','Ế':'E','Ể':'E','Ễ':'E','Ệ':'E',
+    'Ì':'I','Í':'I','Ỉ':'I','Ĩ':'I','Ị':'I',
+    'Ò':'O','Ó':'O','Ỏ':'O','Õ':'O','Ọ':'O',
+    'Ô':'O','Ồ':'O','Ố':'O','Ổ':'O','Ỗ':'O','Ộ':'O',
+    'Ơ':'O','Ờ':'O','Ớ':'O','Ở':'O','Ỡ':'O','Ợ':'O',
+    'Ù':'U','Ú':'U','Ủ':'U','Ũ':'U','Ụ':'U',
+    'Ư':'U','Ừ':'U','Ứ':'U','Ử':'U','Ữ':'U','Ự':'U',
+    'Ỳ':'Y','Ý':'Y','Ỷ':'Y','Ỹ':'Y','Ỵ':'Y',
+    'Đ':'D'
+};
+
 function removeDiacritics(str) {
-    return str
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/đ/g, 'd')
-        .replace(/Đ/g, 'D');
+    return str.replace(/[^\x00-\x7F]/g, ch => VN_DIACRITICS_MAP[ch] || ch);
 }
 
 // State
@@ -22,6 +48,7 @@ let currentViewAccount = null;
 document.addEventListener('DOMContentLoaded', () => {
     loadBanks();
     loadAccounts();
+    loadFolders();
 });
 
 // ============ API CALLS ============
@@ -738,9 +765,10 @@ function showToast(message, type = 'info') {
 document.addEventListener('keydown', (e) => {
     // ESC to close modals
     if (e.key === 'Escape') {
-        ['modal-add', 'modal-upload', 'modal-edit', 'modal-qr-view', 'modal-delete'].forEach(id => {
+        ['modal-add', 'modal-upload', 'modal-edit', 'modal-qr-view', 'modal-delete',
+         'modal-create-folder', 'modal-folder-detail', 'modal-folder-upload', 'modal-delete-folder', 'modal-image-view'].forEach(id => {
             const modal = document.getElementById(id);
-            if (modal.classList.contains('active')) {
+            if (modal && modal.classList.contains('active')) {
                 closeModal(id);
             }
         });
@@ -751,3 +779,459 @@ document.addEventListener('keydown', (e) => {
         document.getElementById('search-input').focus();
     }
 });
+
+// ============================================
+//  FOLDER MANAGEMENT SYSTEM
+// ============================================
+
+// Folder State
+let folders = [];
+let currentFolderId = null;
+let currentViewImage = null;
+let selectedFolderColor = '#7c3aed';
+let folderUploadFiles = [];
+
+// ============ FOLDER API CALLS ============
+async function loadFolders() {
+    try {
+        const res = await fetch('/api/folders');
+        const data = await res.json();
+        if (data.success) {
+            folders = data.data || [];
+            renderFolders();
+        }
+    } catch (err) {
+        console.error('Lỗi tải danh sách folders:', err);
+    }
+}
+
+async function createFolder(payload) {
+    try {
+        const res = await fetch('/api/folders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+            folders.push(data.data);
+            renderFolders();
+            showToast('Đã tạo folder thành công!', 'success');
+            return true;
+        } else {
+            showToast(data.message || 'Lỗi tạo folder', 'error');
+            return false;
+        }
+    } catch (err) {
+        showToast('Lỗi kết nối server', 'error');
+        return false;
+    }
+}
+
+async function deleteFolder(folderId) {
+    try {
+        const res = await fetch(`/api/folders/${folderId}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+            folders = folders.filter(f => f.id !== folderId);
+            renderFolders();
+            showToast('Đã xoá folder', 'success');
+            return true;
+        } else {
+            showToast(data.message || 'Lỗi xoá folder', 'error');
+            return false;
+        }
+    } catch (err) {
+        showToast('Lỗi kết nối server', 'error');
+        return false;
+    }
+}
+
+async function uploadImageToFolder(folderId, file, caption) {
+    try {
+        const formData = new FormData();
+        formData.append('image', file);
+        formData.append('caption', caption || '');
+
+        const res = await fetch(`/api/folders/${folderId}/images`, {
+            method: 'POST',
+            body: formData
+        });
+        const data = await res.json();
+        if (data.success) {
+            // Update local folder data
+            const folder = folders.find(f => f.id === folderId);
+            if (folder) {
+                folder.images.push(data.data);
+            }
+            return data.data;
+        } else {
+            showToast(data.message || 'Lỗi upload ảnh', 'error');
+            return null;
+        }
+    } catch (err) {
+        showToast('Lỗi kết nối server', 'error');
+        return null;
+    }
+}
+
+async function deleteFolderImage(folderId, imageId) {
+    try {
+        const res = await fetch(`/api/folders/${folderId}/images/${imageId}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+            const folder = folders.find(f => f.id === folderId);
+            if (folder) {
+                folder.images = folder.images.filter(img => img.id !== imageId);
+            }
+            showToast('Đã xoá ảnh', 'success');
+            return true;
+        } else {
+            showToast(data.message || 'Lỗi xoá ảnh', 'error');
+            return false;
+        }
+    } catch (err) {
+        showToast('Lỗi kết nối server', 'error');
+        return false;
+    }
+}
+
+// ============ FOLDER RENDERING ============
+function renderFolders() {
+    const grid = document.getElementById('folders-grid');
+    const empty = document.getElementById('folders-empty');
+    const count = document.getElementById('folders-count');
+
+    count.textContent = folders.length;
+
+    if (folders.length === 0) {
+        grid.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+    }
+
+    empty.style.display = 'none';
+
+    // Sort newest first
+    const sorted = [...folders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    grid.innerHTML = sorted.map((folder, i) => renderFolderCard(folder, i)).join('');
+}
+
+function renderFolderCard(folder, index) {
+    const imageCount = (folder.images || []).length;
+    const date = new Date(folder.createdAt);
+    const dateStr = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+
+    return `
+        <div class="folder-card" style="animation-delay: ${index * 0.08}s" onclick="openFolderDetail('${folder.id}')">
+            <div class="folder-card-icon" style="background: ${folder.color || '#7c3aed'};">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2v11z"/>
+                </svg>
+            </div>
+            <div class="folder-card-name">${folder.name}</div>
+            ${folder.owner ? `<div class="folder-card-owner">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                ${folder.owner}
+            </div>` : ''}
+            <div class="folder-card-meta">
+                <span class="folder-card-count">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/>
+                    </svg>
+                    ${imageCount} ảnh
+                </span>
+                <span class="folder-card-date">${dateStr}</span>
+            </div>
+        </div>
+    `;
+}
+
+// ============ FOLDER MODALS ============
+function openCreateFolderModal() {
+    document.getElementById('form-create-folder').reset();
+    selectedFolderColor = '#7c3aed';
+    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+    document.querySelector('.color-swatch[data-color="#7c3aed"]').classList.add('active');
+    document.getElementById('modal-create-folder').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function selectFolderColor(el) {
+    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+    el.classList.add('active');
+    selectedFolderColor = el.dataset.color;
+}
+
+async function handleCreateFolder(e) {
+    e.preventDefault();
+    const submitBtn = document.getElementById('btn-submit-folder');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Đang tạo...';
+
+    const payload = {
+        name: document.getElementById('folder-name').value.trim(),
+        owner: document.getElementById('folder-owner').value.trim(),
+        color: selectedFolderColor
+    };
+
+    const success = await createFolder(payload);
+    if (success) {
+        closeModal('modal-create-folder');
+    }
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Tạo Folder';
+}
+
+// ============ FOLDER DETAIL ============
+function openFolderDetail(folderId) {
+    const folder = folders.find(f => f.id === folderId);
+    if (!folder) return;
+
+    currentFolderId = folderId;
+
+    // Set header info
+    document.getElementById('folder-detail-name').textContent = folder.name;
+    document.getElementById('folder-detail-owner').textContent = folder.owner ? `👤 ${folder.owner}` : '';
+    const icon = document.getElementById('folder-detail-icon');
+    icon.style.background = folder.color || '#7c3aed';
+    icon.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2v11z"/></svg>`;
+
+    renderFolderGallery(folder);
+
+    document.getElementById('modal-folder-detail').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function renderFolderGallery(folder) {
+    const gallery = document.getElementById('folder-gallery');
+    const empty = document.getElementById('folder-empty-gallery');
+    const images = folder.images || [];
+
+    if (images.length === 0) {
+        gallery.innerHTML = '';
+        gallery.style.display = 'none';
+        empty.style.display = 'block';
+        return;
+    }
+
+    empty.style.display = 'none';
+    gallery.style.display = 'grid';
+
+    gallery.innerHTML = images.map(img => `
+        <div class="gallery-item" onclick="viewFolderImage('${folder.id}', '${img.id}')">
+            <img src="${img.path}" alt="${img.caption || img.originalName}" loading="lazy">
+            <div class="gallery-item-overlay">
+                <span class="gallery-item-caption">${img.caption || img.originalName || ''}</span>
+            </div>
+            <button class="gallery-item-delete" onclick="event.stopPropagation(); quickDeleteImage('${folder.id}', '${img.id}')" title="Xoá ảnh">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+    `).join('');
+}
+
+// ============ FOLDER UPLOAD ============
+function openFolderUploadModal() {
+    folderUploadFiles = [];
+    document.getElementById('form-folder-upload').reset();
+    document.getElementById('folder-upload-previews').style.display = 'none';
+    document.getElementById('folder-upload-previews').innerHTML = '';
+    document.getElementById('folder-upload-placeholder').style.display = 'block';
+    document.getElementById('folder-file-input').value = '';
+    document.getElementById('modal-folder-upload').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function handleFolderFileSelect(e) {
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+        folderUploadFiles = files;
+        showFolderUploadPreviews(files);
+    }
+}
+
+function handleFolderDrop(e) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('dragover');
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    if (files.length > 0) {
+        folderUploadFiles = files;
+        // Update file input
+        const dt = new DataTransfer();
+        files.forEach(f => dt.items.add(f));
+        document.getElementById('folder-file-input').files = dt.files;
+        showFolderUploadPreviews(files);
+    } else {
+        showToast('Vui lòng chọn file ảnh', 'error');
+    }
+}
+
+function showFolderUploadPreviews(files) {
+    const container = document.getElementById('folder-upload-previews');
+    const placeholder = document.getElementById('folder-upload-placeholder');
+
+    placeholder.style.display = 'none';
+    container.style.display = 'flex';
+    container.innerHTML = '';
+
+    files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const div = document.createElement('div');
+            div.className = 'folder-upload-preview-item';
+            div.innerHTML = `<img src="${e.target.result}" alt="${file.name}">`;
+            container.appendChild(div);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+async function handleFolderUpload(e) {
+    e.preventDefault();
+
+    if (folderUploadFiles.length === 0) {
+        showToast('Vui lòng chọn file ảnh', 'error');
+        return;
+    }
+
+    if (!currentFolderId) {
+        showToast('Không xác định được folder', 'error');
+        return;
+    }
+
+    const submitBtn = document.getElementById('btn-submit-folder-upload');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Đang upload...';
+
+    const caption = document.getElementById('folder-image-caption').value.trim();
+    let successCount = 0;
+
+    for (const file of folderUploadFiles) {
+        const result = await uploadImageToFolder(currentFolderId, file, caption);
+        if (result) successCount++;
+    }
+
+    if (successCount > 0) {
+        showToast(`Đã upload ${successCount}/${folderUploadFiles.length} ảnh`, 'success');
+        closeModal('modal-folder-upload');
+        renderFolders();
+
+        // Refresh gallery if folder detail is open
+        const folder = folders.find(f => f.id === currentFolderId);
+        if (folder) {
+            renderFolderGallery(folder);
+        }
+    }
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Upload';
+}
+
+// ============ FOLDER IMAGE VIEW ============
+function viewFolderImage(folderId, imageId) {
+    const folder = folders.find(f => f.id === folderId);
+    if (!folder) return;
+
+    const image = folder.images.find(img => img.id === imageId);
+    if (!image) return;
+
+    currentViewImage = { folderId, imageId, image };
+
+    document.getElementById('image-view-title').textContent = image.caption || image.originalName || 'Xem Ảnh';
+    document.getElementById('image-view-img').src = image.path;
+
+    let infoHtml = '';
+    if (image.caption) infoHtml += `<p><strong>Chú thích:</strong> ${image.caption}</p>`;
+    if (image.originalName) infoHtml += `<p><strong>Tên file:</strong> ${image.originalName}</p>`;
+    if (image.size) infoHtml += `<p><strong>Kích thước:</strong> ${formatFileSize(image.size)}</p>`;
+    document.getElementById('image-view-info').innerHTML = infoHtml;
+
+    document.getElementById('modal-image-view').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+async function downloadFolderImage() {
+    if (!currentViewImage) return;
+    const { image } = currentViewImage;
+
+    try {
+        const response = await fetch(image.path);
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = image.originalName || 'image.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('Đang tải xuống...', 'info');
+    } catch {
+        window.open(image.path, '_blank');
+    }
+}
+
+async function deleteFolderImageFromView() {
+    if (!currentViewImage) return;
+    const { folderId, imageId } = currentViewImage;
+
+    const success = await deleteFolderImage(folderId, imageId);
+    if (success) {
+        closeModal('modal-image-view');
+        renderFolders();
+
+        const folder = folders.find(f => f.id === folderId);
+        if (folder) {
+            renderFolderGallery(folder);
+        }
+        currentViewImage = null;
+    }
+}
+
+async function quickDeleteImage(folderId, imageId) {
+    if (!confirm('Xoá ảnh này?')) return;
+
+    const success = await deleteFolderImage(folderId, imageId);
+    if (success) {
+        renderFolders();
+        const folder = folders.find(f => f.id === folderId);
+        if (folder) {
+            renderFolderGallery(folder);
+        }
+    }
+}
+
+// ============ FOLDER DELETE ============
+function openDeleteFolderModal() {
+    if (!currentFolderId) return;
+    const folder = folders.find(f => f.id === currentFolderId);
+    if (!folder) return;
+
+    document.getElementById('delete-folder-name').textContent = folder.name;
+    document.getElementById('modal-delete-folder').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+async function confirmDeleteFolder() {
+    if (!currentFolderId) return;
+
+    const success = await deleteFolder(currentFolderId);
+    if (success) {
+        closeModal('modal-delete-folder');
+        closeModal('modal-folder-detail');
+        currentFolderId = null;
+    }
+}
+
+// ============ FOLDER UTILITIES ============
+function formatFileSize(bytes) {
+    if (!bytes) return '';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}

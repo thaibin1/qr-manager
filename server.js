@@ -55,9 +55,12 @@ const dataFilePath = path.join(__dirname, 'data.json');
 function readData() {
     try {
         const raw = fs.readFileSync(dataFilePath, 'utf-8');
-        return JSON.parse(raw);
+        const data = JSON.parse(raw);
+        // Ensure folders array exists
+        if (!data.folders) data.folders = [];
+        return data;
     } catch (err) {
-        return { accounts: [] };
+        return { accounts: [], folders: [] };
     }
 }
 
@@ -225,6 +228,171 @@ app.get('/api/banks', async (req, res) => {
         res.json(banks);
     } catch (err) {
         res.status(500).json({ success: false, message: 'Không thể tải danh sách ngân hàng' });
+    }
+});
+
+// ==================== FOLDER API ROUTES ====================
+
+// GET - Danh sách folders
+app.get('/api/folders', (req, res) => {
+    const data = readData();
+    res.json({ success: true, data: data.folders || [] });
+});
+
+// POST - Tạo folder mới
+app.post('/api/folders', (req, res) => {
+    try {
+        const data = readData();
+        const { name, owner, color } = req.body;
+
+        if (!name || !name.trim()) {
+            return res.status(400).json({ success: false, message: 'Tên folder không được để trống' });
+        }
+
+        const newFolder = {
+            id: uuidv4(),
+            name: name.trim(),
+            owner: (owner || '').trim(),
+            color: color || '#7c3aed',
+            images: [],
+            createdAt: new Date().toISOString()
+        };
+
+        // Ensure folder upload directory exists
+        const folderUploadsDir = path.join(uploadsDir, 'folders', newFolder.id);
+        if (!fs.existsSync(folderUploadsDir)) {
+            fs.mkdirSync(folderUploadsDir, { recursive: true });
+        }
+
+        data.folders.push(newFolder);
+        writeData(data);
+
+        res.json({ success: true, data: newFolder });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// PUT - Cập nhật folder
+app.put('/api/folders/:id', (req, res) => {
+    try {
+        const data = readData();
+        const index = data.folders.findIndex(f => f.id === req.params.id);
+
+        if (index === -1) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy folder' });
+        }
+
+        const { name, owner, color } = req.body;
+        if (name !== undefined) data.folders[index].name = name.trim();
+        if (owner !== undefined) data.folders[index].owner = owner.trim();
+        if (color !== undefined) data.folders[index].color = color;
+        data.folders[index].updatedAt = new Date().toISOString();
+
+        writeData(data);
+
+        res.json({ success: true, data: data.folders[index] });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// DELETE - Xoá folder
+app.delete('/api/folders/:id', (req, res) => {
+    try {
+        const data = readData();
+        const index = data.folders.findIndex(f => f.id === req.params.id);
+
+        if (index === -1) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy folder' });
+        }
+
+        const removed = data.folders.splice(index, 1)[0];
+
+        // Delete folder upload directory
+        const folderUploadsDir = path.join(uploadsDir, 'folders', removed.id);
+        if (fs.existsSync(folderUploadsDir)) {
+            fs.rmSync(folderUploadsDir, { recursive: true, force: true });
+        }
+
+        writeData(data);
+        res.json({ success: true, message: 'Đã xoá folder' });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// POST - Upload ảnh vào folder
+app.post('/api/folders/:id/images', upload.single('image'), (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: 'Vui lòng chọn file ảnh' });
+        }
+
+        const data = readData();
+        const folder = data.folders.find(f => f.id === req.params.id);
+
+        if (!folder) {
+            // Clean up uploaded file
+            if (req.file && req.file.path) fs.unlinkSync(req.file.path);
+            return res.status(404).json({ success: false, message: 'Không tìm thấy folder' });
+        }
+
+        // Move file to folder-specific directory
+        const folderUploadsDir = path.join(uploadsDir, 'folders', folder.id);
+        if (!fs.existsSync(folderUploadsDir)) {
+            fs.mkdirSync(folderUploadsDir, { recursive: true });
+        }
+
+        const newFilePath = path.join(folderUploadsDir, req.file.filename);
+        fs.renameSync(req.file.path, newFilePath);
+
+        const imageEntry = {
+            id: uuidv4(),
+            filename: req.file.filename,
+            originalName: req.file.originalname,
+            path: `/uploads/folders/${folder.id}/${req.file.filename}`,
+            caption: (req.body.caption || '').trim(),
+            size: req.file.size,
+            createdAt: new Date().toISOString()
+        };
+
+        folder.images.push(imageEntry);
+        writeData(data);
+
+        res.json({ success: true, data: imageEntry });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// DELETE - Xoá ảnh khỏi folder
+app.delete('/api/folders/:folderId/images/:imageId', (req, res) => {
+    try {
+        const data = readData();
+        const folder = data.folders.find(f => f.id === req.params.folderId);
+
+        if (!folder) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy folder' });
+        }
+
+        const imgIndex = folder.images.findIndex(img => img.id === req.params.imageId);
+        if (imgIndex === -1) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy ảnh' });
+        }
+
+        const removed = folder.images.splice(imgIndex, 1)[0];
+
+        // Delete physical file
+        const filePath = path.join(__dirname, 'public', removed.path);
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+        }
+
+        writeData(data);
+        res.json({ success: true, message: 'Đã xoá ảnh' });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
     }
 });
 

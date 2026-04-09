@@ -51,5 +51,15 @@
       "label": "TK chính",
       "createdAt": "2026-04-08T10:43:35.955Z"
     }
+  ],
+  "folders": [
+    {
+      "id": "9a7439d5-0230-425e-b995-43568f8e4658",
+      "name": "Team Ngoc Tu",
+      "owner": "Ngoc Tu",
+      "color": "#06b6d4",
+      "images": [],
+      "createdAt": "2026-04-09T04:04:28.675Z"
+    }
   ]
 }
